@@ -203,3 +203,65 @@ jobs:
           docker compose config --quiet
           rm .env
           echo "docker-compose.yml is valid"
+
+  # ------------------------------------------------------------------ #
+  # Deploy to AWS EC2
+  deploy:
+    name: Deploy to AWS EC2
+    runs-on: [self-hosted, linux, x64, transitpulse-deploy]
+    timeout-minutes: 20
+
+    needs:
+      - data-engine
+      - backend
+      - frontend
+      - contracts
+      - docker
+
+    # Deploy only trusted pushes or manual runs on main.
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' ||
+       github.event_name == 'workflow_dispatch')
+
+    steps:
+      - name: Deploy TransitPulse
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cd "$HOME/TransitPulse"
+
+          echo "Fetching latest code..."
+          git fetch origin main
+          git pull --ff-only origin main
+
+          echo "Building application images..."
+          docker compose build backend frontend
+
+          echo "Deploying application..."
+          docker compose up -d --no-deps backend frontend
+
+          echo "Waiting for backend health..."
+          for i in {1..30}; do
+            if curl -fsS http://localhost/api/health >/dev/null; then
+              echo "Backend is healthy!"
+              break
+            fi
+
+            if [ "$i" -eq 30 ]; then
+              echo "Backend health check failed!"
+              docker compose logs --tail=100 backend
+              exit 1
+            fi
+
+            sleep 10
+          done
+
+          echo "Checking frontend..."
+          curl -fsSI http://localhost/ >/dev/null
+
+          echo "Checking Docker containers..."
+          docker compose ps
+
+          echo "TransitPulse deployment completed successfully!"
