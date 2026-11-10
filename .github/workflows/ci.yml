@@ -160,7 +160,6 @@ jobs:
   docker:
     name: Docker images (Build and Push to ECR)
     runs-on: ubuntu-latest
-    needs: [data-engine, backend, frontend, contracts]
     permissions:
       contents: read
       id-token: write
@@ -227,6 +226,7 @@ jobs:
           echo "docker-compose.yml is valid"
 
 
+ 
   # ------------------------------------------------------------------ #
   # Deploy to AWS EC2
   deploy:
@@ -270,6 +270,22 @@ jobs:
 
           echo "Pulling application images..."
           docker compose pull backend frontend data-engine
+
+          echo "Detecting Python engine UID/GID..."
+          ENGINE_UID=$(docker compose run --rm --no-deps \
+            --entrypoint sh data-engine -c 'id -u')
+
+          ENGINE_GID=$(docker compose run --rm --no-deps \
+            --entrypoint sh data-engine -c 'id -g')
+
+          echo "Engine UID: $ENGINE_UID"
+          echo "Engine GID: $ENGINE_GID"
+
+          echo "Fixing output directory permissions..."
+          sudo mkdir -p data-engine/output/csv data-engine/output/json
+          sudo chown -R "$ENGINE_UID:$ENGINE_GID" data-engine/output
+          sudo find data-engine/output -type d -exec chmod 755 {} \;
+          sudo find data-engine/output -type f -exec chmod 644 {} \;
 
           echo "Running Python analytics engine..."
           docker compose run --rm --no-deps data-engine
