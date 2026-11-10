@@ -1,5 +1,4 @@
 
-
 services:
   mysql:
     image: mysql:8.0
@@ -27,6 +26,7 @@ services:
       - transitpulse
 
   data-engine:
+    image: 535203104590.dkr.ecr.us-east-1.amazonaws.com/transitpulse-data-engine:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: docker/Dockerfile.data-engine
@@ -37,12 +37,12 @@ services:
     volumes:
       - ./datasets:/app/datasets
       - ./data-engine/output:/app/output
-    # A batch job: it runs the pipeline and exits.
     restart: "no"
     networks:
       - transitpulse
 
   backend:
+    image: 535203104590.dkr.ecr.us-east-1.amazonaws.com/transitpulse-backend:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: docker/Dockerfile.backend
@@ -70,6 +70,7 @@ services:
       - transitpulse
 
   frontend:
+    image: 535203104590.dkr.ecr.us-east-1.amazonaws.com/transitpulse-frontend:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: docker/Dockerfile.frontend
