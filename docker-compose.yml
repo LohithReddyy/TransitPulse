@@ -1,0 +1,95 @@
+
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: transitpulse-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-transitpulse}
+      MYSQL_USER: ${MYSQL_USER:-transitpulse}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./database/mysql/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./database/mysql/02_seed_data.sql:/docker-entrypoint-initdb.d/02_seed_data.sql:ro
+      - ./data-engine/output/csv:/var/lib/mysql-files/transitpulse
+    command: --secure-file-priv=/var/lib/mysql-files --local-infile=1
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost",
+             "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    networks:
+      - transitpulse
+
+  data-engine:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.data-engine
+    container_name: transitpulse-data-engine
+    environment:
+      TRANSITPULSE_DATASETS_DIR: /app/datasets
+      TRANSITPULSE_OUTPUT_DIR: /app/output
+    volumes:
+      - ./datasets:/app/datasets
+      - ./data-engine/output:/app/output
+    # A batch job: it runs the pipeline and exits.
+    restart: "no"
+    networks:
+      - transitpulse
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: transitpulse-backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: ${SERVER_PORT:-8080}
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-transitpulse}
+      MYSQL_USER: ${MYSQL_USER:-transitpulse}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
+      TRANSITPULSE_CORS_ORIGINS: ${TRANSITPULSE_CORS_ORIGINS:-http://localhost:3000}
+      TRANSITPULSE_LOAD_DATASETS: ${TRANSITPULSE_LOAD_DATASETS:-false}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    volumes:
+      - ./datasets:/app/datasets:ro
+      - ./data-engine/output:/app/engine-output:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      data-engine:
+        condition: service_completed_successfully
+    networks:
+      - transitpulse
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    container_name: transitpulse-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      - backend
+    networks:
+      - transitpulse
+
+volumes:
+  mysql-data:
+    driver: local
+
+networks:
+  transitpulse:
+    driver: bridge

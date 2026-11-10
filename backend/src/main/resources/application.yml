@@ -1,0 +1,129 @@
+# =====================================================================
+# TransitPulse backend configuration
+#
+# No credentials are stored here. Database settings come from environment
+# variables with development-safe defaults; see .env.example.
+# =====================================================================
+spring:
+  application:
+    name: transitpulse-backend
+  profiles:
+    # H2 in-memory by default so the API runs with nothing else installed.
+    default: dev
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+      indent-output: false
+    default-property-inclusion: non_null
+
+server:
+  port: ${SERVER_PORT:8098}
+  error:
+    include-message: always
+    include-binding-errors: always
+
+transitpulse:
+  datasets:
+    dir: ${TRANSITPULSE_DATASETS_DIR:../datasets}
+    load-on-startup: ${TRANSITPULSE_LOAD_DATASETS:true}
+  engine:
+    output-dir: ${TRANSITPULSE_ENGINE_OUTPUT:../data-engine/output}
+  cors:
+    allowed-origins: ${TRANSITPULSE_CORS_ORIGINS:http://localhost:3000,http://localhost:5173}
+  analysis:
+    low-volume-stop-threshold: ${TRANSITPULSE_LOW_VOLUME_THRESHOLD:20}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+logging:
+  level:
+    root: INFO
+    com.transitpulse: ${TRANSITPULSE_LOG_LEVEL:INFO}
+
+---
+# ---------------------------------------------------------------- dev (H2)
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:h2:mem:transitpulse;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+---
+# ------------------------------------------------------------- mysql profile
+spring:
+  config:
+    activate:
+      on-profile: mysql
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:transitpulse}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&tinyInt1isBit=false
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${MYSQL_USER:transitpulse}
+    password: ${MYSQL_PASSWORD:}
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 20000
+  jpa:
+    hibernate:
+      # The SQL scripts own the schema in MySQL; validate rather than generate.
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+transitpulse:
+  datasets:
+    load-on-startup: false
+
+---
+# ------------------------------------------------------------ docker profile
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:transitpulse}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&tinyInt1isBit=false
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${MYSQL_USER:transitpulse}
+    password: ${MYSQL_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+transitpulse:
+  datasets:
+    dir: /app/datasets
+    load-on-startup: ${TRANSITPULSE_LOAD_DATASETS:true}
+  engine:
+    output-dir: /app/engine-output
+  cors:
+    allowed-origins: ${TRANSITPULSE_CORS_ORIGINS:http://localhost:3000}

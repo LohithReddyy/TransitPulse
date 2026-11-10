@@ -1,0 +1,62 @@
+# ---------------- secrets ----------------
+.env
+.env.*
+!.env.example
+*.pem
+*.p8
+*.key
+credentials.json
+connections.toml
+
+# ---------------- Java / Maven ----------------
+target/
+*.jar
+*.war
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+dependency-reduced-pom.xml
+
+# ---------------- Node ----------------
+node_modules/
+dist/
+build/
+.vite/
+npm-debug.log*
+yarn-error.log*
+.eslintcache
+
+# ---------------- Python ----------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.mypy_cache/
+
+# ---------------- engine output ----------------
+# Generated artefacts; regenerate with the pipeline rather than committing.
+data-engine/output/csv/
+data-engine/output/json/
+data-engine/output/manifest.json
+
+# ---------------- IDE / OS ----------------
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+*.swp
+
+# ---------------- logs ----------------
+logs/
+*.log
+
+# ---------------- Docker / temporary files ----------------
+*.tar
+*.tmp
+.DS_Store

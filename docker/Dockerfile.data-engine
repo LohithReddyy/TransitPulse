@@ -1,0 +1,31 @@
+FROM python:3.11-slim
+WORKDIR /app
+
+# Build tools are needed for some wheels; removed again to keep the image small.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY data-engine/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt \
+    && apt-get purge -y gcc && apt-get autoremove -y
+
+COPY data-engine/ ./
+
+RUN useradd --create-home --shell /bin/bash engine \
+    && mkdir -p /app/output /app/datasets \
+    && chown -R engine:engine /app
+USER engine
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    TRANSITPULSE_DATASETS_DIR=/app/datasets \
+    TRANSITPULSE_OUTPUT_DIR=/app/output
+
+# Generate datasets if absent, then run the analytical pipeline.
+CMD ["sh", "-c", "\
+  if [ ! -f /app/datasets/routes.csv ]; then \
+    echo 'No datasets found; generating them...'; \
+    python generate_datasets.py --out /app/datasets; \
+  fi; \
+  python -m transitpulse_engine.pipeline --datasets /app/datasets --output /app/output"]

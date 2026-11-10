@@ -1,0 +1,18 @@
+{
+  "on_time_threshold_min": 2.0,
+  "minor_delay_threshold_min": 5.0,
+  "moderate_delay_threshold_min": 15.0,
+  "early_arrival_threshold_min": -2.0,
+  "propagation_window_min": 90,
+  "min_propagated_delay_min": 2.0,
+  "vehicle_turnaround_min": 5.0,
+  "recovery_min_reduction_min": 1.0,
+  "required_transfer_buffer_min": 5.0,
+  "max_transfer_wait_min": 30.0,
+  "missed_connection_margin_min": 0.0,
+  "low_volume_stop_threshold": 20,
+  "transfer_rate": 0.18,
+  "additional_wait_on_missed_connection_min": 15.0,
+  "missing_gps_strategy": "EXCLUDE",
+  "sensitivity_buffers_min": [3.0, 5.0, 8.0, 10.0]
+}

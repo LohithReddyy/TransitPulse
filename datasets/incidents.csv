@@ -1,0 +1,22 @@
+incident_id,incident_type,route_id,stop_id,start_time,end_time,severity,description,is_diversion,status,reported_by
+INC001,VEHICLE_BREAKDOWN,R06,S044,2026-03-16 06:14:00,2026-03-16 07:48:00,CRITICAL,Vehicle Breakdown affecting route R06 near stop S044.,N,CLOSED,operations
+INC002,DIVERSION,R05,S003,2026-03-16 07:08:00,2026-03-16 08:47:00,CRITICAL,Diversion affecting route R05 near stop S003.,Y,CLOSED,operations
+INC003,VEHICLE_BREAKDOWN,R01,S027,2026-03-16 13:53:00,2026-03-16 14:12:00,MEDIUM,Vehicle Breakdown affecting route R01 near stop S027.,N,CLOSED,operations
+INC004,DIVERSION,R10,S041,2026-03-16 14:04:00,2026-03-16 14:49:00,HIGH,Diversion affecting route R10 near stop S041.,Y,CLOSED,operations
+INC005,SIGNAL_FAILURE,R10,S015,2026-03-16 14:47:00,2026-03-16 15:39:00,HIGH,Signal Failure affecting route R10 near stop S015.,N,CLOSED,operations
+INC006,SPECIAL_EVENT,R08,S033,2026-03-16 06:22:00,2026-03-16 08:11:00,LOW,Special Event affecting route R08 near stop S033.,N,CLOSED,operations
+INC007,DIVERSION,R10,S041,2026-03-16 14:58:00,2026-03-16 15:35:00,CRITICAL,Diversion affecting route R10 near stop S041.,Y,CLOSED,operations
+INC008,ROAD_WORKS,R10,S051,2026-03-16 07:46:00,2026-03-16 08:09:00,LOW,Road Works affecting route R10 near stop S051.,N,CLOSED,operations
+INC009,VEHICLE_BREAKDOWN,R02,S007,2026-03-16 12:51:00,2026-03-16 14:07:00,CRITICAL,Vehicle Breakdown affecting route R02 near stop S007.,N,CLOSED,operations
+INC010,ROAD_WORKS,R05,S003,2026-03-16 07:51:00,2026-03-16 08:52:00,HIGH,Road Works affecting route R05 near stop S003.,N,CLOSED,operations
+INC011,WEATHER,R10,S049,2026-03-16 08:41:00,2026-03-16 10:08:00,MEDIUM,Weather affecting route R10 near stop S049.,N,CLOSED,operations
+INC012,TRAFFIC_CONGESTION,R03,S055,2026-03-16 07:41:00,2026-03-16 09:40:00,MEDIUM,Traffic Congestion affecting route R03 near stop S055.,N,CLOSED,operations
+INC013,TRAFFIC_CONGESTION,R08,S033,2026-03-16 07:49:00,2026-03-16 08:17:00,HIGH,Traffic Congestion affecting route R08 near stop S033.,N,CLOSED,operations
+INC014,SIGNAL_FAILURE,R02,S034,2026-03-16 12:56:00,2026-03-16 14:49:00,HIGH,Signal Failure affecting route R02 near stop S034.,N,CLOSED,operations
+INC015,ROAD_WORKS,R01,S026,2026-03-16 13:54:00,2026-03-16 15:32:00,MEDIUM,Road Works affecting route R01 near stop S026.,N,CLOSED,operations
+INC016,DIVERSION,R07,S030,2026-03-16 13:03:00,2026-03-16 16:21:00,HIGH,Stop S030 not served; S001 served instead,Y,CLOSED,operations
+INC017,DIVERSION,R09,S052,2026-03-16 08:31:00,2026-03-16 15:00:00,HIGH,Stop S052 not served; S001 served instead,Y,CLOSED,operations
+INC018,DIVERSION,R03,S028,2026-03-16 10:00:00,2026-03-16 16:01:00,HIGH,Stop S028 not served; S001 served instead,Y,CLOSED,operations
+INC019,DIVERSION,R07,S052,2026-03-16 09:59:00,2026-03-16 16:33:00,HIGH,Stop S052 not served; S001 served instead,Y,CLOSED,operations
+INC020,DIVERSION,R01,S005,2026-03-16 13:19:00,2026-03-16 16:18:00,HIGH,Stop S005 not served; S002 served instead,Y,CLOSED,operations
+INC021,DIVERSION,R08,S024,2026-03-16 06:10:00,2026-03-16 16:25:00,HIGH,Stop S024 not served; S001 served instead,Y,CLOSED,operations

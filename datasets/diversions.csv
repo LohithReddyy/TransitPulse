@@ -1,0 +1,7 @@
+diversion_id,trip_id,route_id,skipped_stop_id,replacement_stop_id,skipped_stop_sequence,notes,service_date
+DIV001,T0080,R07,S030,S001,3,Stop S030 not served; S001 served instead,2026-03-16
+DIV002,T0099,R09,S052,S001,2,Stop S052 not served; S001 served instead,2026-03-16
+DIV003,T0031,R03,S028,S001,4,Stop S028 not served; S001 served instead,2026-03-16
+DIV004,T0074,R07,S052,S001,4,Stop S052 not served; S001 served instead,2026-03-16
+DIV005,T0008,R01,S005,S002,3,Stop S005 not served; S002 served instead,2026-03-16
+DIV006,T0091,R08,S024,S001,5,Stop S024 not served; S001 served instead,2026-03-16

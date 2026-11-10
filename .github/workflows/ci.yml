@@ -1,0 +1,205 @@
+name: TransitPulse CI
+
+on:
+  push:
+    branches: [main, feature]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ------------------------------------------------------------------ #
+  data-engine:
+    name: Data engine (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: data-engine/requirements.txt
+
+      - name: Install dependencies
+        working-directory: data-engine
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate synthetic datasets
+        working-directory: data-engine
+        run: python generate_datasets.py --seed 42
+
+      - name: Run unit tests
+        working-directory: data-engine
+        run: python -m pytest tests/ -v
+
+      - name: Run the analytical pipeline
+        working-directory: data-engine
+        run: python -m transitpulse_engine.pipeline
+
+      - name: Verify engine output exists
+        working-directory: data-engine
+        run: |
+          test -f output/json/dashboard.json
+          test -f output/json/propagation.json
+          test -f output/json/worked_example.json
+          test -f output/csv/delay_events.csv
+          echo "Engine output verified"
+
+      - name: Upload datasets and engine output
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-output
+          path: |
+            datasets/
+            data-engine/output/
+          retention-days: 7
+
+  # ------------------------------------------------------------------ #
+  backend:
+    name: Backend (Spring Boot)
+    runs-on: ubuntu-latest
+    needs: data-engine
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: maven
+
+      # The backend tests load the CSV datasets, so fetch them from the
+      # previous job rather than regenerating them.
+      - name: Download engine output
+        uses: actions/download-artifact@v4
+        with:
+          name: engine-output
+
+      - name: Compile
+        working-directory: backend
+        run: mvn -B clean compile
+
+      - name: Run tests
+        working-directory: backend
+        run: mvn -B test
+
+      - name: Package
+        working-directory: backend
+        run: mvn -B package -DskipTests
+
+      - name: Upload jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: backend/target/transitpulse-backend.jar
+          retention-days: 7
+
+  # ------------------------------------------------------------------ #
+  frontend:
+    name: Frontend (React)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm install --no-audit --no-fund
+
+      - name: Run component tests
+        working-directory: frontend
+        run: npm test
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+          retention-days: 7
+
+  # ------------------------------------------------------------------ #
+  contracts:
+    name: SQL and API contract checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install checkers
+        run: pip install sqlglot
+
+      - name: Validate every SQL script parses
+        run: python tests/validate_sql.py
+
+      - name: Verify frontend calls match backend endpoints
+        run: python tests/verify_api_contract.py
+
+  # ------------------------------------------------------------------ #
+  docker:
+    name: Docker images
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.backend
+          push: false
+          tags: transitpulse-backend:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.frontend
+          push: false
+          tags: transitpulse-frontend:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build data engine image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.data-engine
+          push: false
+          tags: transitpulse-data-engine:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Validate the compose file
+        run: |
+          cp .env.example .env
+          docker compose config --quiet
+          rm .env
+          echo "docker-compose.yml is valid"

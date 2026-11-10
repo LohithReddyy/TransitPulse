@@ -1,0 +1,11 @@
+route_id,route_name,mode,origin_name,destination_name,stop_count,status,description
+R01,Harbour Line,BUS,Harbour Terminal,Civic Centre,9,ACTIVE,Harbour Line serving 9 stops
+R02,Civic Crosstown,BUS,Civic Centre,Elmgrove Depot,8,ACTIVE,Civic Crosstown serving 8 stops
+R03,Elmgrove Express,BUS,Elmgrove Depot,Northgate,6,ACTIVE,Elmgrove Express serving 6 stops
+R04,Northgate Loop,BUS,Northgate,Northgate,7,ACTIVE,Northgate Loop serving 7 stops
+R05,Riverside Tram,TRAM,Riverside Quay,Civic Centre,8,ACTIVE,Riverside Tram serving 8 stops
+R06,University Shuttle,BUS,Civic Centre,University Gate,5,ACTIVE,University Shuttle serving 5 stops
+R07,Airport Rapid,BUS,Civic Centre,Airport Terminal,6,ACTIVE,Airport Rapid serving 6 stops
+R08,Southbank Metro,METRO,Southbank,Civic Centre,7,ACTIVE,Southbank Metro serving 7 stops
+R09,Industrial Feeder,BUS,Elmgrove Depot,Ironworks Park,5,ACTIVE,Industrial Feeder serving 5 stops
+R10,Hillside Connector,BUS,Northgate,Hillside Village,5,ACTIVE,Hillside Connector serving 5 stops
