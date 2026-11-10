@@ -38,8 +38,6 @@ def upload_folder(folder: Path, prefix: str):
 
 
 if __name__ == "__main__":
-    print("Uploading raw datasets...")
-    upload_folder(DATASETS_DIR, "raw")
 
     print("\nUploading processed analytics...")
     upload_folder(OUTPUT_DIR / "csv", "processed")
