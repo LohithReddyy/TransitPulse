@@ -287,12 +287,34 @@ jobs:
           sudo find data-engine/output -type d -exec chmod 755 {} \;
           sudo find data-engine/output -type f -exec chmod 644 {} \;
 
+          
           echo "Running Python analytics engine..."
           docker compose run --rm --no-deps data-engine
+
+          echo "Checking generated CSV files..."
+          test -s data-engine/output/csv/delay_events.csv
+          test -s data-engine/output/csv/propagation_results.csv
+          test -s data-engine/output/csv/passenger_impact.csv
+
+          echo "Loading analytical results into MySQL..."
+          docker compose exec -T mysql sh -lc \
+            'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" transitpulse' \
+            < database/mysql/03_load_engine_results.sql
+
+          echo "Verifying MySQL analytical records..."
+          docker compose exec -T mysql sh -lc \
+            'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -D transitpulse -e "
+              SELECT '\''delay_events'\'' AS table_name, COUNT(*) AS records FROM delay_events
+              UNION ALL
+              SELECT '\''propagation_results'\'', COUNT(*) FROM propagation_results
+              UNION ALL
+              SELECT '\''passenger_impact'\'', COUNT(*) FROM passenger_impact;
+            "'
 
           echo "Uploading analytics to S3..."
           "$HOME/transitpulse-aws-venv/bin/python" \
             data-engine/upload_to_s3.py
+
 
           echo "Deploying backend and frontend..."
           docker compose up -d --no-build --no-deps backend frontend
