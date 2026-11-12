@@ -271,8 +271,10 @@ jobs:
             | docker login --username AWS --password-stdin \
               "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
 
+          
           echo "Pulling application images..."
           docker compose pull backend frontend data-engine
+
 
           echo "Detecting Python engine UID/GID..."
           ENGINE_UID=$(docker compose run --rm --no-deps \
@@ -339,6 +341,27 @@ jobs:
           echo "Checking frontend..."
           curl -fsSI http://localhost/ >/dev/null
 
+          echo "Starting monitoring services..."
+          docker compose up -d --no-build --no-deps \
+            prometheus grafana node-exporter cadvisor
+
+          echo "Checking monitoring containers..."
+          docker compose ps prometheus grafana node-exporter cadvisor
+
+          echo "Checking Prometheus readiness..."
+          for i in {1..30}; do
+            if curl -fsS http://localhost:9090/-/ready >/dev/null; then
+              echo "Prometheus ready"
+              break
+            fi
+
+            if [ "$i" -eq 30 ]; then
+              docker compose logs --tail=100 prometheus
+              exit 1
+            fi
+            sleep 2
+          done
+
           docker compose ps
 
-          echo "TransitPulse ECR deployment successful!"
+          echo "TransitPulse deployment including monitoring successful!"
