@@ -90,6 +90,9 @@ jobs:
 
       - name: Run tests
         working-directory: backend
+        env:
+          JWT_SECRET: "TransitPulse-CI-Only-Test-Secret-Change-This-12345678901234567890"
+          JWT_EXPIRATION_MINUTES: "480"
         run: mvn -B test
 
       - name: Package
