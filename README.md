@@ -286,19 +286,6 @@ Regenerating the seed file after changing the datasets:
 python database/generate_seed_sql.py
 ```
 
-### Snowflake (optional)
-
-```bash
-snowsql -a <account> -u <user> -f database/snowflake/01_database_setup.sql
-snowsql -a <account> -u <user> -f database/snowflake/02_raw_tables.sql
-# upload the CSVs (see 04_load_data.sql for the PUT commands), then:
-snowsql -a <account> -u <user> -f database/snowflake/04_load_data.sql
-snowsql -a <account> -u <user> -f database/snowflake/03_star_schema.sql
-snowsql -a <account> -u <user> -f database/snowflake/05_analytics_views.sql
-```
-
----
-
 ## Project structure
 
 ```

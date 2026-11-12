@@ -23,11 +23,7 @@ const NAV_SECTIONS = [
       { to: '/passenger-impact', label: 'Passenger Impact', icon: '☺' },
       { to: '/incidents', label: 'Incident Management', icon: '⚠' },
     ],
-  },
-  {
-    label: 'System',
-    items: [{ to: '/settings', label: 'Settings', icon: '⚙' }],
-  },
+  }
 ];
 
 export default function Sidebar({ open, onNavigate }) {
@@ -63,11 +59,6 @@ export default function Sidebar({ open, onNavigate }) {
         ))}
       </nav>
 
-      <div className="sidebar-footer">
-        TransitPulse v1.0.0
-        <br />
-        CAP-15
-      </div>
     </aside>
   );
 }

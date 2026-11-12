@@ -158,66 +158,6 @@ is a measured passenger count, and the schema says so.
 | `v_passenger_impact_by_route` | Route-level impact aggregates |
 | `v_data_quality` | Record counts by data quality flag |
 
----
-
-## Snowflake — data warehouse
-
-Three schemas: `RAW` (as-loaded), `CORE` (star schema), `ANALYTICS` (views).
-
-### Star schema
-
-```
-                    DIM_DATE
-                        │
-   DIM_ROUTE ───────────┼─────────── DIM_STOP
-        │               │                 │
-        │      ┌────────▼─────────┐       │
-        └──────┤ FACT_DELAY_EVENT ├───────┘
-               └────────┬─────────┘
-        ┌───────────────┼───────────────┐
-   DIM_TRIP        DIM_VEHICLE    DIM_TIME_BAND
-                                  DIM_DELAY_CLASS
-
-   FACT_PROPAGATION       (source + affected route, trip, stop, date)
-   FACT_CONNECTION_RISK   (stop, feeder + connecting route, trip, date)
-   FACT_PASSENGER_IMPACT  (route, stop, date, time band, delay class)
-   FACT_SENSITIVITY       (unrelated — one row per tested buffer)
-```
-
-### Dimensions
-
-| Table | Grain | Notes |
-|-------|-------|-------|
-| `DIM_DATE` | one row per service date | Generated with `GENERATOR`; mark as the date table in Power BI |
-| `DIM_ROUTE` | one row per route | |
-| `DIM_STOP` | one row per stop | Carries `total_boardings` and `is_low_volume_stop` |
-| `DIM_VEHICLE` | one row per vehicle | |
-| `DIM_TRIP` | one row per trip | Includes `date_key` for date filtering |
-| `DIM_TIME_BAND` | five rows | `sort_order` so peaks sort chronologically |
-| `DIM_DELAY_CLASS` | six rows | `severity_order` so SEVERE does not sort before ON_TIME |
-
-`DIM_DELAY_CLASS` includes `MISSING`, defined as *"No GPS arrival event, or a
-stop skipped by a diversion. Never counted as on time."* Keeping it in the
-dimension means a Power BI chart shows missing data as its own visible
-category instead of dropping it.
-
-### Facts
-
-| Table | Grain | Pre-computed measures |
-|-------|-------|----------------------|
-| `FACT_DELAY_EVENT` | trip × stop | `is_on_time`, `is_delayed`, `is_assessable` |
-| `FACT_PROPAGATION` | source trip × affected trip | `confidence_rank`, `propagation_link_count` |
-| `FACT_CONNECTION_RISK` | connection | `at_risk_count`, `missed_count`, `assessed_count`, `unassessed_count`, `passengers_at_risk`, `passengers_missed` |
-| `FACT_PASSENGER_IMPACT` | trip × stop | `is_estimate` (always TRUE) |
-| `FACT_SENSITIVITY` | tested buffer | |
-
-`is_assessable` exists so DAX can divide by *observed* movements rather than
-all rows. Without it, every punctuality measure in Power BI would silently
-include unmeasured stops in its denominator.
-
-`assessed_count` and `unassessed_count` serve the same purpose for connection
-risk: a connection whose feeder had no GPS record cannot be called safe or at
-risk, so it must not sit in the denominator of a risk percentage.
 
 ### Analytics views
 

@@ -17,6 +17,21 @@ export const client = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+client.interceptors.request.use((config) => {
+  const token = sessionStorage.getItem('transitpulse_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+client.interceptors.response.use((response) => response, (error) => {
+  if (error?.response?.status === 401 && !String(error.config?.url || '').startsWith('/api/auth/')) {
+    sessionStorage.removeItem('transitpulse_token');
+    sessionStorage.removeItem('transitpulse_user');
+    window.dispatchEvent(new Event('transitpulse:unauthorized'));
+  }
+  return Promise.reject(error);
+});
+
 /** Turn any failure into an Error carrying the most useful message available. */
 function toError(error) {
   const response = error?.response;
@@ -66,6 +81,10 @@ const put = (url, body) => unwrap(client.put(url, body));
 const del = (url) => unwrap(client.delete(url));
 
 export const api = {
+  // ---------------- authentication ----------------
+  register: (body) => post('/api/auth/register', body),
+  login: (body) => post('/api/auth/login', body),
+  me: () => get('/api/auth/me'),
   // ---------------- health ----------------
   health: () => get('/api/health'),
 

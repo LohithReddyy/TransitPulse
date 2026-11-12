@@ -28,6 +28,10 @@ transitpulse:
     load-on-startup: ${TRANSITPULSE_LOAD_DATASETS:true}
   engine:
     output-dir: ${TRANSITPULSE_ENGINE_OUTPUT:../data-engine/output}
+  jwt:
+    # Development-only fallback. Always override JWT_SECRET with a random Base64 key in deployments.
+    secret: ${JWT_SECRET:VHJhbnNpdFB1bHNlLWRldi1vbmx5LWtleS0zMi1ieXRlcy1sb25nIQ==}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:480}
   cors:
     allowed-origins: ${TRANSITPULSE_CORS_ORIGINS:http://localhost:3000,http://localhost:5173}
   analysis:
@@ -83,7 +87,7 @@ spring:
     activate:
       on-profile: mysql
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:transitpulse}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&tinyInt1isBit=false
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:transitpulse}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${MYSQL_USER:transitpulse}
     password: ${MYSQL_PASSWORD:}
@@ -92,8 +96,8 @@ spring:
       connection-timeout: 20000
   jpa:
     hibernate:
-      # The SQL scripts own the schema in MySQL; validate rather than generate.
-      ddl-auto: validate
+      # Existing operational tables remain intact; Hibernate creates the auth table.
+      ddl-auto: update
     open-in-view: false
     properties:
       hibernate:
@@ -110,13 +114,13 @@ spring:
     activate:
       on-profile: docker
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:transitpulse}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&tinyInt1isBit=false
+    url: jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:transitpulse}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${MYSQL_USER:transitpulse}
     password: ${MYSQL_PASSWORD:}
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     open-in-view: false
 
 transitpulse:

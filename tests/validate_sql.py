@@ -1,34 +1,60 @@
-"""Parse-validate every SQL file with sqlglot for its target dialect."""
+
+"""Parse-validate every MySQL SQL file with sqlglot."""
+
 import sys
 from pathlib import Path
 import sqlglot
 
-targets = []
-for p in sorted(Path("database").rglob("*.sql")):
-    dialect = "snowflake" if "snowflake" in str(p) else "mysql"
-    targets.append((p, dialect))
+
+DATABASE_DIR = Path("database")
+
+targets = sorted(DATABASE_DIR.rglob("*.sql"))
+
+if not targets:
+    print("ERROR: No SQL files found in database/")
+    sys.exit(1)
 
 failures = 0
-for path, dialect in targets:
+
+for path in targets:
+    dialect = "mysql"
     sql = path.read_text(encoding="utf-8")
-    # sqlglot has no grammar for MySQL LOAD DATA / Snowflake COPY INTO <table>,
-    # so those statements are removed before parsing the rest of the file.
-    if "LOAD DATA" in sql.upper() or "COPY INTO" in sql.upper():
-        kept, skip = [], False
+
+    # sqlglot does not fully support MySQL LOAD DATA syntax,
+    # so those statements are removed before parsing the remaining SQL.
+    if "LOAD DATA" in sql.upper():
+        kept = []
+
         for stmt in sql.split(";"):
-            u = stmt.upper()
-            if "LOAD DATA" in u or ("COPY INTO" in u and "SELECT" not in u):
-                skip = True
+            if "LOAD DATA" in stmt.upper():
                 continue
+
             kept.append(stmt)
+
         sql = ";".join(kept)
+
     try:
-        stmts = sqlglot.parse(sql, dialect=dialect)
-        n = len([s for s in stmts if s is not None])
-        print(f"OK   {path}  [{dialect}]  {n} statements")
-    except Exception as e:
+        statements = sqlglot.parse(sql, dialect=dialect)
+        statement_count = len(
+            [statement for statement in statements if statement is not None]
+        )
+
+        print(
+            f"OK   {path}  "
+            f"[{dialect}]  {statement_count} statements"
+        )
+
+    except Exception as error:
         failures += 1
-        msg = str(e).split("\n")[0][:300]
-        print(f"FAIL {path}  [{dialect}]  {msg}")
-print(f"\n{len(targets) - failures}/{len(targets)} files parsed")
-sys.exit(1 if failures else 0)
+        message = str(error).split("\n")[0][:300]
+
+        print(f"FAIL {path}  [{dialect}]  {message}")
+
+print(f"\n{len(targets) - failures}/{len(targets)} files parsed successfully")
+
+if failures:
+    print(f"\nValidation failed: {failures} file(s) contain SQL parsing errors.")
+    sys.exit(1)
+
+print("\nAll MySQL SQL files parsed successfully.")
+sys.exit(0)

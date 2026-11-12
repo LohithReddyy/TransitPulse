@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import api from '../services/api';
+
+import { useAuth } from '../auth/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const TITLES = {
   '/': ['Dashboard', 'Network-wide delay and passenger impact overview'],
@@ -18,31 +19,22 @@ const TITLES = {
     'Passenger Impact',
     'Estimated passengers affected by delay and missed transfers',
   ],
-  '/analytics': ['Analytics', 'Performance, distribution, propagation and recovery'],
-  '/settings': ['Settings', 'Analytical parameters used by the engine'],
+  '/analytics': [
+    'Analytics',
+    'Performance, distribution, propagation and recovery',
+  ],
 };
 
 export default function Navbar({ pathname, onToggleMenu }) {
-  const [engineReady, setEngineReady] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    api
-      .getEngineStatus()
-      .then((status) => {
-        if (!cancelled) {
-          setEngineReady(Boolean(status?.payloads?.length));
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setEngineReady(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const [title, subtitle] = TITLES[pathname] || ['TransitPulse', ''];
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <header className="navbar">
@@ -55,6 +47,7 @@ export default function Navbar({ pathname, onToggleMenu }) {
         >
           ☰
         </button>
+
         <div className="navbar-title">
           <h1>{title}</h1>
           <p>{subtitle}</p>
@@ -62,19 +55,17 @@ export default function Navbar({ pathname, onToggleMenu }) {
       </div>
 
       <div className="navbar-right">
-        {engineReady === false && (
-          <span
-            className="badge badge-warn"
-            title="Run: cd data-engine && python -m transitpulse_engine.pipeline"
+        <div className="navbar-user">
+          <span>{user?.fullName || user?.email}</span>
+
+          <button
+            type="button"
+            className="logout-button"
+            onClick={handleLogout}
           >
-            engine not run
-          </span>
-        )}
-        {engineReady === true && (
-          <span className="badge badge-ok" title="Analytics are available">
-            analytics ready
-          </span>
-        )}
+            Sign out
+          </button>
+        </div>
       </div>
     </header>
   );
