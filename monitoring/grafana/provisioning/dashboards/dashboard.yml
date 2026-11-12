@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: TransitPulse
+    orgId: 1
+    folder: TransitPulse
+    type: file
+    disableDeletion: true
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

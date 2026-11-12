@@ -29,8 +29,7 @@ transitpulse:
   engine:
     output-dir: ${TRANSITPULSE_ENGINE_OUTPUT:../data-engine/output}
   jwt:
-    # Development-only fallback. Always override JWT_SECRET with a random Base64 key in deployments.
-    secret: ${JWT_SECRET:VHJhbnNpdFB1bHNlLWRldi1vbmx5LWtleS0zMi1ieXRlcy1sb25nIQ==}
+    secret: ${JWT_SECRET}
     expiration-minutes: ${JWT_EXPIRATION_MINUTES:480}
   cors:
     allowed-origins: ${TRANSITPULSE_CORS_ORIGINS:http://localhost:3000,http://localhost:5173}
@@ -41,10 +40,14 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       show-details: when-authorized
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 springdoc:
   swagger-ui:
