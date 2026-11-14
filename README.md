@@ -326,13 +326,13 @@ TransitPulse/
 ├── datasets/                    11 relationally consistent CSVs
 ├── database/
 │   ├── mysql/                   Schema, seed, loader, queries
-│   └── snowflake/               Setup, raw, star schema, views, queries
 ├── powerbi/                     Connection, model, DAX, layout
 ├── aws/                         S3 layout and upload, EC2 deployment
 ├── docker/                      Three Dockerfiles and nginx config
 ├── .github/workflows/           CI pipeline
 ├── documentation/               Seven detailed documents
 ├── tests/                       Cross-cutting contract checks
+├── monitoring/                   Monitoring metrics
 ├── docker-compose.yml
 ├── .env.example
 └── README.md
